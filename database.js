@@ -7,8 +7,8 @@ let _db = null;
 async function connect() {
   if (!_db) {
     const connectionString =
-      'mongodb+srv://jackmerseal02:Pacman02@cluster0.al8mazt.mongodb.net/?retryWrites=true&w=majority';
-    const dbName = 'RetroAmazon';
+      process.env.DB_URL;
+    const dbName = process.env.DB_NAME;
     const client = await MongoClient.connect(connectionString);
     _db = client.db(dbName);
   }
@@ -68,6 +68,14 @@ async function addUser(user) {
   return result;
 }
 
+async function loginUser(user) {
+  const db = await connect();
+  const resultUser = await db
+    .collection('Users')
+    .findOne({ email: user.email });
+    return resultUser;
+}
+
 ping();
 
 export {
@@ -79,4 +87,5 @@ export {
   updateBook,
   deleteBook,
   addUser,
+  loginUser,
 };
