@@ -25,6 +25,7 @@
   },
   "homepage": "https://github.com/jackmerseal/RetroAmazonBackEnd#readme",
   "dependencies": {
+    "@merlin4/express-auth": "^0.0.5",
     "bcrypt": "^5.1.1",
     "cookie-parser": "^1.4.6",
     "debug": "^4.3.4",
