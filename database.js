@@ -4,6 +4,8 @@ const debugDatabase = debug('app:Database');
 
 let _db = null;
 
+const newId = (str) => new ObjectId(str);
+
 async function connect() {
   if (!_db) {
     const connectionString =
@@ -60,6 +62,12 @@ async function deleteBook(id) {
   return result;
 }
 
+async function getUsers(){
+  const db = await connect();
+  const users = await db.collection('Users').find({}).toArray();
+  return users;
+}
+
 async function addUser(user) {
   const db = await connect();
   user.role = ['customer'];
@@ -75,7 +83,6 @@ async function loginUser(user) {
     .findOne({ email: user.email });
     return resultUser;
 }
-
 ping();
 
 export {
@@ -86,6 +93,8 @@ export {
   addBook,
   updateBook,
   deleteBook,
+  getUsers,
   addUser,
   loginUser,
+  newId,
 };

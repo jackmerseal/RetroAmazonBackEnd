@@ -4,13 +4,15 @@ import { UserRouter } from './routes/api/user.js';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-
-
 //create a debug channel called app:Server
 import debug from 'debug';
 const debugServer = debug('app:Server');
 
+import cookieParser from 'cookie-parser';
+
 const app = express();
+app.use(cookieParser());
+
 //middleware
 //allow form data
 app.use(express.urlencoded({ extended: true }));
