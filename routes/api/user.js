@@ -8,6 +8,7 @@ import {
   addUser,
   loginUser,
   updateUser,
+  saveEdit,
   newId,
 } from '../../database.js';
 import bcrypt from 'bcrypt';
@@ -15,6 +16,7 @@ import Joi from 'joi';
 import jwt from 'jsonwebtoken';
 import { validBody } from '../../middleware/validBody.js';
 import { validId } from '../../middleware/validId.js';
+import { isLoggedIn } from '@merlin4/express-auth';
 
 const router = express.Router();
 
@@ -49,7 +51,7 @@ const updateUserSchema = Joi.object({
   password: Joi.string().trim().min(8).max(50),
 });
 
-router.get('/list', async (req, res) => {
+router.get('/list', isLoggedIn(), async (req, res) => {
   debugUser('Getting all users');
   try {
     let users = await getUsers();
@@ -73,11 +75,9 @@ router.post('/add', validBody(newUserSchema), async (req, res) => {
       //Ready to create the cookie and JWT Token
       const authToken = await issueAuthToken(newUser);
       issueAuthCookie(res, authToken);
-      res
-        .status(200)
-        .json({
-          message: `User ${result.insertedId} added. Your auth token is ${authToken}`,
-        });
+      res.status(200).json({
+        message: `User ${result.insertedId} added. Your auth token is ${authToken}`,
+      });
     }
   } catch (err) {
     res.status(500).json({ error: err.stack });
@@ -103,6 +103,49 @@ router.post('/login', validBody(loginUserSchema), async (req, res) => {
   }
 });
 
+//Self Service Route
+router.put(
+  '/update/me',
+  isLoggedIn(),
+  validBody(updateUserSchema),
+  async (req, res) => {
+    debugUser(`Self Service Route Updating a user ${JSON.stringify(req.auth)}`);
+    const updatedUser = req.body;
+
+    try {
+      const user = await getUserById(newId(req.auth._id));
+      if (user) {
+        if (updatedUser.fullName) {
+          user.fullName = updatedUser.fullName;
+        }
+        if (updatedUser.password) {
+          user.password = await bcrypt.hash(updatedUser.password, 10);
+        }
+        const dbResult = await updateUser(user);
+        if (dbResult.modifiedCount == 1) {
+          const edit = {
+            timeStamp: new Date(),
+            op: 'Self-Edit Update User',
+            collection: 'Users',
+            target: user._id,
+            auth: req.auth
+          }
+          await saveEdit(edit);
+          res.status(200).json({ message: `User ${req.auth._id} updated` });
+          return;
+        } else {
+          res.status(400).json({ message: `User ${req.auth._id} not updated` });
+          return;
+        }
+      } else {
+        res.status(400).json({ message: `User ${req.auth._id} not updated` });
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.stack });
+    }
+  }
+);
+
 //Admin can update a user by the id
 router.put(
   '/update/:id',
@@ -122,7 +165,18 @@ router.put(
       }
       const dbResult = await updateUser(user);
       if (dbResult.modifiedCount == 1) {
+        const edit = {
+          timeStamp: new Date(),
+          op: 'Admin Update User',
+          collection: 'Users',
+          target: user._id,
+          auth: req.auth
+        }
+        await saveEdit(edit);
         res.status(200).json({ message: `User ${req.id} updated` });
+        return;
+      } else {
+        res.status(400).json({ message: `User ${req.id} not updated` });
         return;
       }
     } else {
@@ -130,7 +184,5 @@ router.put(
     }
   }
 );
-
-//Self Service Update
 
 export { router as UserRouter };

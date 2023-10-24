@@ -37,8 +37,8 @@ app.use((req,res) => {
 
 //handle server exceptions to keep my server from crashing
 app.use((err,req,res,next) => {
-  debugServer(err.stack);
-  res.status(500).json({error:`${err.stack}`});
+  //debugServer(err.stack);
+  res.status(err.status).json({error: err.message});
 });
 
 const port = process.env.PORT || 3005;

@@ -97,6 +97,12 @@ async function updateUser(user) {
   return result;
 }
 
+async function saveEdit(edit){
+  const db = await connect();
+  const result = await db.collection('Edit').insertOne(edit);
+  return result;
+}
+
 ping();
 
 export {
@@ -112,5 +118,6 @@ export {
   addUser,
   loginUser,
   updateUser,
+  saveEdit,
   newId,
 };

@@ -8,6 +8,7 @@ import {
   updateBook,
   addBook,
   deleteBook,
+  saveEdit,
 } from '../../database.js';
 import { validId } from '../../middleware/validId.js';
 import { validBody } from '../../middleware/validBody.js';
@@ -121,7 +122,7 @@ router.get('/list', isLoggedIn(), async (req, res) => {
 });
 
 //get a book by the id
-router.get('/:id', validId('id'), async (req, res) => {
+router.get('/:id', isLoggedIn(), validId('id'), async (req, res) => {
   const id = req.id;
   try {
     const book = await getBookById(id);
@@ -139,6 +140,7 @@ router.get('/:id', validId('id'), async (req, res) => {
 //update can use a put or a post
 router.put(
   '/update/:id',
+  isLoggedIn(),
   validId('id'),
   validBody(updateBookSchema),
   async (req, res) => {
@@ -149,7 +151,16 @@ router.put(
     }
     try {
       const updateResult = await updateBook(id, updatedBook);
+      debugBook(`Update result is ${JSON.stringify(updateResult)}`);
       if (updateResult.modifiedCount == 1) {
+        const edit = {
+          timeStamp: new Date(),
+          op: 'Update Book',
+          collection: 'books',
+          target: id,
+          auth: req.auth
+        }
+        await saveEdit(edit);
         res.status(200).json({ message: `Book ${id} updated` });
       } else {
         res.status(404).json({ message: `Book ${id} not updated` });
@@ -161,7 +172,7 @@ router.put(
 );
 
 //add a new book to the Mongo Atlas database
-router.post('/add', validBody(newBookSchema), async (req, res) => {
+router.post('/add', isLoggedIn(), validBody(newBookSchema), async (req, res) => {
   //req is the request object
   const newBook = req.body;
   const dbResult = await addBook(newBook);
@@ -181,7 +192,7 @@ router.post('/add', validBody(newBookSchema), async (req, res) => {
 });
 
 //delete a book by the id
-router.delete('/delete/:bookId', validId('bookId'), async (req, res) => {
+router.delete('/delete/:bookId', isLoggedIn(), validId('bookId'), async (req, res) => {
   //gets the id from the URL
   const id = req.bookId;
   try {
