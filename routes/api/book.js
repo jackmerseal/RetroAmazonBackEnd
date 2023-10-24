@@ -41,6 +41,8 @@ const updateBookSchema = Joi.object({
 //get all books
 router.get('/list', isLoggedIn(), async (req, res) => {
 
+  debugBook(`The req.auth property is: ${JSON.stringify(req.auth)}`);
+
   /* if(!req.auth){
     res.status(401).json({error: "Not authorized"});
     return;

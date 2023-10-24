@@ -8,8 +8,7 @@ const newId = (str) => new ObjectId(str);
 
 async function connect() {
   if (!_db) {
-    const connectionString =
-      process.env.DB_URL;
+    const connectionString = process.env.DB_URL;
     const dbName = process.env.DB_NAME;
     const client = await MongoClient.connect(connectionString);
     _db = client.db(dbName);
@@ -62,10 +61,16 @@ async function deleteBook(id) {
   return result;
 }
 
-async function getUsers(){
+async function getUsers() {
   const db = await connect();
   const users = await db.collection('Users').find({}).toArray();
   return users;
+}
+
+async function getUserById(id) {
+  const db = await connect();
+  const user = await db.collection('Users').findOne({ _id: id });
+  return user;
 }
 
 async function addUser(user) {
@@ -81,8 +86,17 @@ async function loginUser(user) {
   const resultUser = await db
     .collection('Users')
     .findOne({ email: user.email });
-    return resultUser;
+  return resultUser;
 }
+
+async function updateUser(user) {
+  const db = await connect();
+  const result = await db
+    .collection('Users')
+    .updateOne({ _id: user._id }, { $set: { ...user } });
+  return result;
+}
+
 ping();
 
 export {
@@ -94,7 +108,9 @@ export {
   updateBook,
   deleteBook,
   getUsers,
+  getUserById,
   addUser,
   loginUser,
+  updateUser,
   newId,
 };
