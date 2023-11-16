@@ -13,7 +13,7 @@ import {
 import { validId } from '../../middleware/validId.js';
 import { validBody } from '../../middleware/validBody.js';
 import Joi from 'joi';
-import {isLoggedIn} from '@merlin4/express-auth';
+import {isLoggedIn, hasPermission} from '@merlin4/express-auth';
 
 const router = express.Router();
 
@@ -40,7 +40,7 @@ const updateBookSchema = Joi.object({
 });
 
 //get all books
-router.get('/list', isLoggedIn(), async (req, res) => {
+router.get('/list', isLoggedIn(),  hasPermission('canListBooks'), async (req, res) => {
 
   debugBook(`The req.auth property is: ${JSON.stringify(req.auth)}`);
 

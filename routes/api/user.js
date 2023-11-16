@@ -10,20 +10,32 @@ import {
   updateUser,
   saveEdit,
   newId,
+  findRoleByName,
 } from '../../database.js';
 import bcrypt from 'bcrypt';
 import Joi from 'joi';
 import jwt from 'jsonwebtoken';
 import { validBody } from '../../middleware/validBody.js';
 import { validId } from '../../middleware/validId.js';
-import { isLoggedIn } from '@merlin4/express-auth';
+import { isLoggedIn, fetchRoles, mergePermissions, hasPermission } from '@merlin4/express-auth';
 
 const router = express.Router();
 
-async function issueAuthToken(user) {
+async function issueAuthToken(user){
   const payload = { _id: user._id, fullName: user.fullName, role: user.role };
   const secret = process.env.JWT_SECRET;
   const options = { expiresIn: '1h' };
+
+  const roles = await fetchRoles(user, role => findRoleByName(role));
+
+  /* roles.forEach(role => {
+  debugUser(`The users roles is ${(role.name)} and has the following permissions ${JSON.stringify(role.permissions)}`);
+  }); */
+
+  const permissions = mergePermissions(user, roles);
+  payload.permissions = permissions;
+
+  //debugUser(`The users permissions are ${JSON.stringify(permissions)}`);
 
   const authToken = jwt.sign(payload, secret, options);
   return authToken;
@@ -51,7 +63,7 @@ const updateUserSchema = Joi.object({
   password: Joi.string().trim().min(8).max(50),
 });
 
-router.get('/list', isLoggedIn(), async (req, res) => {
+router.get('/list', isLoggedIn(),  async (req, res) => {
   debugUser('Getting all users');
   try {
     let users = await getUsers();
