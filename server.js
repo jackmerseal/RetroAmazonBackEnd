@@ -7,11 +7,18 @@ dotenv.config();
 //create a debug channel called app:Server
 import debug from 'debug';
 const debugServer = debug('app:Server');
-
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { authMiddleware } from '@merlin4/express-auth';
 
 const app = express();
+
+app.use(express.static('public'));
+app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(cookieParser());
 app.use(authMiddleware(process.env.JWT_SECRET, 'authToken', {
   httpOnly: true,
@@ -21,6 +28,10 @@ app.use(authMiddleware(process.env.JWT_SECRET, 'authToken', {
 //middleware
 //allow form data
 app.use(express.urlencoded({ extended: true }));
+
+//NO MIDDLEWARE GOES BELOW THESE ROUTES!!!
+//NO MIDDLEWARE GOES BELOW THESE ROUTES!!!
+//NO MIDDLEWARE GOES BELOW THESE ROUTES!!!
 app.use('/api/books', BookRouter);
 app.use('/api/users', UserRouter);
 

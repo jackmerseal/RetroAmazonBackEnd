@@ -109,10 +109,19 @@ router.post('/login', validBody(loginUserSchema), async (req, res) => {
     issueAuthCookie(res, authToken);
     res
       .status(200)
-      .json(`Welcome ${resultUser.fullName}. Your auth token is ${authToken}`);
+      .json({message: `Welcome ${resultUser.fullName}`, 
+      authToken:authToken, 
+      email: resultUser.email,
+      fullName: resultUser.fullName,
+    });
   } else {
     res.status(401).json(`email or password incorrect`);
   }
+});
+
+router.post('/logout', isLoggedIn(), async (req, res) => {
+  res.clearCookie('authToken');
+  res.status(200).json({ message: 'Logged out' });
 });
 
 //Self Service Route

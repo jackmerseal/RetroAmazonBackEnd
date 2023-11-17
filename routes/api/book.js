@@ -40,7 +40,7 @@ const updateBookSchema = Joi.object({
 });
 
 //get all books
-router.get('/list', isLoggedIn(),  hasPermission('canListBooks'), async (req, res) => {
+router.get('/list', isLoggedIn(), hasPermission('canListBooks'), async (req, res) => {
 
   debugBook(`The req.auth property is: ${JSON.stringify(req.auth)}`);
 
