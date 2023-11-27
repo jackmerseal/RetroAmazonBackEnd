@@ -192,7 +192,7 @@ router.post('/add', isLoggedIn(), validBody(newBookSchema), async (req, res) => 
 });
 
 //delete a book by the id
-router.delete('/delete/:bookId', isLoggedIn(), validId('bookId'), async (req, res) => {
+router.delete('/delete/:bookId', isLoggedIn(), hasPermission('canDeleteBook'), validId('bookId'), async (req, res) => {
   //gets the id from the URL
   const id = req.bookId;
   try {
